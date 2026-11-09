@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>急跌 / 崩盤:造市商避險與軋空互動筆記</title>
+<style>
+:root{--bg:#f5f6f8;--card:#fff;--ink:#172033;--mut:#5b6577;--line:#d7dbe3;--sell:#c8372d;--buy:#11866f;--iv:#b9770e;--navy:#1f3a68;--hl:#fff3c4;--sb:#fbe3e0;--bb:#d8f1ea}
+@media(prefers-color-scheme:dark){:root{--bg:#10151f;--card:#18202e;--ink:#e8ecf3;--mut:#9aa5b8;--line:#2d384b;--sell:#ff7b70;--buy:#4fd1b3;--iv:#f0b44c;--navy:#8fb2ec;--hl:#4a3f12;--sb:#3b1f1f;--bb:#173a33}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 "Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif}
+main{max-width:920px;margin:0 auto;padding:24px 16px 64px}
+h1{font-size:28px;font-weight:700;margin:0 0 6px;line-height:1.3}
+h2{font-size:22px;font-weight:700;margin:40px 0 4px}
+h3{font-size:16px;font-weight:700;margin:0 0 4px}
+p{margin:6px 0}.mut{color:var(--mut);font-size:14px}
+button{font:inherit;font-size:14px;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:8px;padding:6px 12px;cursor:pointer}
+button:hover{border-color:var(--navy)}button:focus-visible,input:focus-visible{outline:2px solid var(--navy);outline-offset:2px}
+button.on{background:var(--navy);color:var(--bg);border-color:var(--navy)}
+.bar{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.nav a{font-size:14px;color:var(--navy);border:1px solid var(--line);background:var(--card);border-radius:20px;padding:4px 12px;text-decoration:none}
+.nav a:hover{border-color:var(--navy)}
+.wrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--card)}
+.lanes{min-width:660px;background:linear-gradient(var(--line),var(--line)) 12.5% 0/1px 100% no-repeat,linear-gradient(var(--line),var(--line)) 37.5% 0/1px 100% no-repeat,linear-gradient(var(--line),var(--line)) 62.5% 0/1px 100% no-repeat,linear-gradient(var(--line),var(--line)) 87.5% 0/1px 100% no-repeat}
+.hd,.row{display:grid;grid-template-columns:repeat(4,1fr)}
+.hd{border-bottom:1px solid var(--line);background:var(--card);position:relative}
+.hd b{text-align:center;padding:10px 4px;font-size:14px}
+.ph{padding:10px 16px;font-size:20px;font-weight:700;display:flex;justify-content:space-between;align-items:center;margin:6px 0}
+.ph small{font-size:13px;font-weight:400;color:var(--mut)}
+.ph.p1{background:var(--sb)}.ph.p2{background:var(--bb)}
+.row{height:58px;cursor:pointer;transition:opacity .2s,background .2s}
+.row:hover{background:color-mix(in srgb,var(--hl) 50%,transparent)}
+.row.sel{outline:2px solid var(--navy);outline-offset:-2px}
+.row.rel{background:var(--hl)}.row.dim{opacity:.25}
+.cell{position:relative;height:100%}
+.ar{position:absolute;top:62%;border-top:2px solid var(--c)}
+.ar.r::after,.ar.l::before{content:"";position:absolute;top:-6px;border:5px solid transparent}
+.ar.r::after{right:-1px;border-left:8px solid var(--c);border-right:0}
+.ar.l::before{left:-1px;border-right:8px solid var(--c);border-left:0}
+.lb{position:absolute;left:0;right:0;top:8px;text-align:center;font-size:13px;line-height:1.3}
+.note{position:absolute;inset:10px 10px;border:1px solid var(--line);background:var(--bg);border-radius:6px;font-size:13px;display:flex;align-items:center;justify-content:center;text-align:center;padding:0 6px}
+.s{--c:var(--sell)}.b{--c:var(--buy)}.v{--c:var(--iv)}.n{--c:var(--mut)}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-top:12px;min-height:118px}
+.chip{display:inline-block;margin:6px 6px 0 0;padding:2px 10px;border-radius:14px;border:1px solid var(--navy);color:var(--navy);background:none;font-size:13px}
+.chip.on{background:var(--navy);color:var(--bg)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px;margin-top:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;transition:background .2s,border-color .2s}
+.card.on{border-color:var(--navy);background:var(--hl)}
+.card button{padding:0 8px;font-size:12px;margin:6px 4px 0 0;border-radius:12px}
+.gauge{height:14px;border-radius:7px;display:flex;overflow:hidden;margin:14px 0 4px}
+.gauge i{display:block}
+input[type=range]{width:100%}
+.res{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-top:10px}
+table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);font-size:14px}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{font-weight:700}
+table[data-d=dn] .up,table[data-d=up] .dn{opacity:.4}
+table[data-d=dn] th.dn,table[data-d=up] th.up{background:var(--hl)}
+ul.cv{padding-left:20px}ul.cv li{margin:6px 0}
+footer{margin-top:40px;color:var(--mut);font-size:13px;border-top:1px solid var(--line);padding-top:12px}
+.tabs button{font-size:15px;padding:8px 18px}
+.turn{border:1px solid var(--line);border-radius:12px;background:var(--card);margin:12px 0;padding:12px 16px}
+.turn.u{border-left:4px solid var(--navy)}.turn.a{border-left:4px solid var(--buy)}
+.turn h3{font-size:13px;color:var(--mut);font-weight:700}
+.tx{white-space:pre-wrap;word-break:break-word;margin:0}
+.sum{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
+input[type=search]{font:inherit;width:100%;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink)}
+.hl{color:#e00000;font-weight:700;font-size:1.05em}
+@media(prefers-color-scheme:dark){.hl{color:#ff6b6b}}
+</style>
+</head>
+<body>
+<main>
+<h1>急跌 / 崩盤:造市商避險與軋空互動筆記</h1>
+<p class="mut">整理自完整對話:從「兩階段價格行為」到時序圖、VIX 與成交量參考、急漲鏡像與限制。點擊時序圖的任一步驟、名詞標籤或數字,各區塊會互相連動。 <b>Claude原始對話</b>:<a href="https://claude.ai/share/7ce1fad2-30ee-4699-b294-a3ae26c2444d" target="_blank" rel="noopener noreferrer" style="color:var(--navy);font-weight:700">點此查看原始對話</a></p>
+<div class="bar tabs"><button id="bN" class="on">互動筆記</button><button id="bT">逐字稿</button></div><div id="pN"><div class="bar nav"><a href="#cc">概念解說</a><a href="#seq">1 時序圖</a><a href="#gl">2 名詞地圖</a><a href="#vx">3 VIX 與量能</a><a href="#mr">4 急漲鏡像</a><a href="#lm">5 限制與修正</a></div>
+
+<h2 id="cc">概念解說</h2>
+<div class="sum">
+<p><b>主題</b>:急跌或崩盤時,<b class="hl">投資人</b>(散戶、長線持有機構等)與<b class="hl">造市商</b>的避險行為如何形成「加速下殺 → 回補軋空」的兩階段價格行為,並延伸到急漲鏡像、VIX 與成交量的參考。</p>
+<p><b>核心機制</b></p>
+<ul class="cv">
+<li>階段一:<b class="hl">投資人</b>賣股、買 Put;<b class="hl">造市商</b>賣 Put 並放空股票避險。<b class="hl">造市商</b>處於負 Gamma,越跌越賣,賣壓疊加形成加速下殺。</li>
+<li>階段二:恐慌極致、跌勢趨緩後,反彈、IV Crush(Vanna)與時間流逝(Charm)使 Put 貶值、Delta 縮小,<b class="hl">造市商</b>過度避險而回補空單,形成回饋循環與軋空。</li>
+<li>急漲為鏡像:空頭回補、買 Call,<b class="hl">造市商</b>賣 Call 後須買進股票;階段二則賣出股票,造成回檔。</li>
+<li>參考指標:VIX 區間(&lt;20、20~30、30~40、&gt;40)與成交量倍數(1、1.2~1.5、1.5~2、&gt;2 倍)。</li>
+<li>限制:需淨負 Gamma、需要恐慌暫停、Put/Call 比僅為輔助指標;Gamma Squeeze 多指上漲方向。</li>
+</ul>
+</div>
+
+<h2 id="seq">1 互動時序圖</h2>
+<p class="mut">點擊任一列查看說明與相關名詞。「逐步播放」可從第 1 步一路推演到軋空。</p>
+<div class="bar">
+<button id="play">逐步播放</button><button id="prev">上一步</button><button id="next">下一步</button><button id="all">全部顯示</button>
+</div>
+<div class="wrap"><div class="lanes" id="lanes"></div></div>
+<div class="panel" id="detail"></div>
+
+<h2 id="gl">2 名詞地圖</h2>
+<p class="mut">每張卡片列出出現的步驟,點數字跳回時序圖;點時序圖中的名詞標籤,則高亮所有相關步驟。</p>
+<div class="bar" id="tbar"></div>
+<div class="grid" id="gloss"></div>
+
+<h2 id="vx">3 VIX 與成交量參考</h2>
+<p class="mut">拖曳 VIX,並選擇當下是「上升中」或「回落中」,查看對應的量能與造市商狀態。</p>
+<div class="bar"><button id="dUp" class="on">VIX 上升中(階段一)</button><button id="dDn">VIX 回落中(階段二)</button></div>
+<div class="gauge"><i style="width:25%;background:var(--buy)"></i><i style="width:25%;background:#8fb339"></i><i style="width:25%;background:var(--iv)"></i><i style="width:25%;background:var(--sell)"></i></div>
+<input type="range" id="vix" min="10" max="50" value="35" aria-label="VIX 水準">
+<div class="res" id="vres"></div>
+
+<h2 id="mr">4 急漲鏡像:Call 端</h2>
+<p class="mut">結構相同、方向相反。切換方向,對應欄位會被強調。</p>
+<div class="bar"><button id="mDn" class="on">急跌(Put 端)</button><button id="mUp">急漲(Call 端)</button></div>
+<table id="mt" data-d="dn"></table>
+
+<h2 id="lm">5 限制與修正</h2>
+<ul class="cv">
+<li>造市商必須處於淨負 Gamma,否則機制不會放大波動。大盤指數的上檔常為正 Gamma,所以崩跌通常比飆漲劇烈。</li>
+<li>階段二需要「恐慌暫停」。若基本面持續惡化、價格不斷破低,Put 的 Delta 不會下降,回補不會發生。</li>
+<li>「Gamma Squeeze」多指上漲方向;急跌後的反彈較精確稱為避險回補或軋空。</li>
+<li>Put/Call 比 &gt; 1.0 只是情緒輔助指標,極端值之後仍可能再創極端。</li>
+<li>VIX 的速度比水準重要;VIX 見頂不等於股價見底。</li>
+<li>價量背離(價創低但量縮)有時比單看爆量更有參考價值,但解讀較主觀。</li>
+</ul>
+</div>
+<div id="pT" hidden>
+<h2>對話摘要</h2>
+<div class="sum">
+<p><b>主題</b>:急跌或崩盤時,<b class="hl">投資人</b>(散戶、長線持有機構等)與<b class="hl">造市商</b>的避險行為如何形成「加速下殺 → 回補軋空」的兩階段價格行為,並延伸到急漲鏡像、VIX 與成交量的參考。</p>
+<p><b>核心機制</b></p>
+<ul class="cv">
+<li>階段一:<b class="hl">投資人</b>賣股、買 Put;<b class="hl">造市商</b>賣 Put 並放空股票避險。<b class="hl">造市商</b>處於負 Gamma,越跌越賣,賣壓疊加形成加速下殺。</li>
+<li>階段二:恐慌極致、跌勢趨緩後,反彈、IV Crush(Vanna)與時間流逝(Charm)使 Put 貶值、Delta 縮小,<b class="hl">造市商</b>過度避險而回補空單,形成回饋循環與軋空。</li>
+<li>急漲為鏡像:空頭回補、買 Call,<b class="hl">造市商</b>賣 Call 後須買進股票;階段二則賣出股票,造成回檔。</li>
+<li>參考指標:VIX 區間(&lt;20、20~30、30~40、&gt;40)與成交量倍數(1、1.2~1.5、1.5~2、&gt;2 倍)。</li>
+<li>限制:需淨負 Gamma、需要恐慌暫停、Put/Call 比僅為輔助指標;Gamma Squeeze 多指上漲方向。</li>
+</ul>
+<p><b>對話流程</b>(點擊跳到該段)</p>
+<div id="tlist" class="bar"></div>
+<p class="mut">說明:圖表(時序圖各版本)無法以文字呈現,逐字稿以【圖表】標記;最終互動版請見「互動筆記」分頁。</p>
+</div>
+<h2>逐字稿</h2>
+<input type="search" id="q" placeholder="搜尋逐字稿關鍵字(例如:Gamma、VIX、回補)" aria-label="搜尋逐字稿">
+<p class="mut" id="qn"></p>
+<div id="tx"></div>
+</div>
+<footer>VIX 與量倍數(當日量 ÷ 20 日均量)區間皆為經驗參考值,僅供概念說明,不構成投資建議。</footer>
+</main>
+<script>
+const LN=['市場價格','散戶/機構','造市商','VIX/時間'];
+const S=[
+{p:1,f:0,t:1,k:'n',x:'價格下跌 虧損',d:'市場下跌,投資人帳面虧損;持續下跌使恐慌升高。',m:['vix']},
+{p:1,f:1,t:0,k:'s',x:'恐慌賣股 降槓桿',d:'散戶與機構賣出部位或降低槓桿,形成第一道賣壓。',m:['volume']},
+{p:1,f:1,t:2,k:'s',x:'買 Put 避險',d:'投資人買 Put 幫持股避險,對手方多為造市商,造市商因此持有賣出的 Put。',m:['put','pcr']},
+{p:1,f:2,t:0,k:'s',x:'賣空股票 Delta 避險',d:'賣出 Put 的造市商持有正 Delta,必須放空股票讓部位中性。投資人與造市商同時賣出,只是原因不同。',m:['delta','gamma']},
+{p:1,f:0,t:2,k:'note',x:'賣壓疊加 爆量下殺',d:'造市商處於負 Gamma:越跌越賣,賣壓疊加恐慌,形成加速下殺與超跌。VIX 飆高、成交量放大。',m:['gamma','volume','vix']},
+{p:2,f:0,t:1,k:'n',x:'跌勢趨緩 小幅反彈',d:'恐慌達到極致,想賣的人都賣完(賣出高潮),跌勢趨緩或小幅反彈。聰明資金開始反向布局。',m:['climax','volume']},
+{p:2,f:3,t:2,k:'v',x:'IV Crush',d:'VIX 只要稍微回落,選擇權權利金縮水,價外 Put 的 Delta 變小。',m:['vanna','vix']},
+{p:2,f:3,t:2,k:'v',x:'時間流逝',d:'恐慌時買的多為短天期 Put,股價幾天不跌,時間價值與 Delta 快速衰減。',m:['charm']},
+{p:2,f:0,t:2,k:'n',x:'反彈 Put 貶值',d:'股價反彈使 Put 轉向價外,Put 貶值、Delta 縮小。',m:['delta','vanna','charm']},
+{p:2,f:1,t:2,k:'note',x:'Delta 下降 過度避險',d:'Put 的對沖需求下降,造市商之前放空的股票變得太多,形成過度避險。',m:['delta']},
+{p:2,f:2,t:0,k:'b',x:'買回股票 回補空單',d:'造市商買回股票、解除多餘避險,這是機械性買盤。',m:['cover']},
+{p:2,f:0,t:2,k:'n',x:'股價上漲 Put 更貶值',d:'買盤推升股價,Put 進一步貶值。',m:['cover','gamma']},
+{p:2,f:2,t:0,k:'b',x:'再回補更多空單',d:'Put 貶值需要回補更多空單,形成回饋循環。',m:['cover']},
+{p:2,f:0,t:2,k:'note',x:'軋空 V 型反轉 ↻',d:'買盤 → 股價漲 → Put 貶值 → 再買盤,循環至動能耗盡。',m:['cover','gamma']}];
+const G={
+delta:['Delta','選擇權價格對標的價格的敏感度。造市商賣出 Put 後持有正 Delta,需放空股票來中性化;Put 貶值、Delta 縮小時,則要買回。'],
+gamma:['Gamma','Delta 的變動速度。造市商淨負 Gamma 時須順勢操作:跌了賣、漲了買,因此放大波動。指數與個股的 Gamma 結構不同。'],
+vanna:['Vanna / IV Crush','波動率下降使價外 Put 的 Delta 變小,造市商需回補空單。恐慌退潮、VIX 回落時最明顯。'],
+charm:['Charm / Theta','時間流逝使短天期 Put 的 Delta 與時間價值衰減,價格不動也會觸發回補。選擇權到期日附近效應最強。'],
+put:['買 Put 避險','散戶或機構買 Put 保護持股,造市商是賣方。Put 成交量在恐慌時暴增。'],
+pcr:['Put/Call 比','Put 與 Call 成交量比。超過 1.0 代表避險情緒濃,可作輔助反向指標,但不精準。'],
+vix:['VIX','S&amp;P 500 的 30 天隱含波動率。&lt;20 平靜、20~30 警戒、30~40 恐慌、&gt;40 極端恐慌;變化速度比水準重要。'],
+volume:['成交量','量倍數 = 當日量 ÷ 20 日均量。&gt;2 倍的爆量常見於賣出高潮;反彈量增較可靠,量縮易再探底。'],
+climax:['賣出高潮','恐慌極致、爆量後賣盤出盡,常是階段二的起點,但不保證見底。'],
+cover:['回補 / 軋空','造市商買回過多的避險空單。買盤推升股價 → Put 更貶值 → 再回補,形成回饋循環。嚴格說 Gamma Squeeze 多指上漲方向。']};
+const Z=[
+[0,20,'平靜 / 正常','≈ 1 倍','避險部位穩定,波動被動放大有限。','回歸正常,量回到均量附近。'],
+[20,30,'警戒 / 緊張','1.2~1.5 倍','Put 需求上升,造市商開始增加空單避險。','恐慌解除,成交量逐步縮減。'],
+[30,40,'恐慌','1.5~2 倍','Put 量暴增,避險賣壓加速下殺,對應階段一。','回補加速,量能縮減,軋空延續。'],
+[40,99,'極端恐慌','&gt; 2 倍 爆量','賣出高潮;只要跌勢稍緩,就可能進入階段二。','VIX 見頂回落,IV Crush 啟動,Put Delta 快速縮小。']];
+const M=[['受損者','多頭','空頭'],['散戶/投資人','賣股、買 Put','回補空單、買 Call'],['造市商部位','賣 Put:正 Delta、負 Gamma','賣 Call:負 Delta、負 Gamma'],['造市商避險','放空股票','買進股票'],['價格變動時','越跌越賣','越漲越買'],['階段一','加速下殺','加速上攻(Gamma Squeeze)'],['階段二觸發','反彈、時間流逝、IV 下降','漲勢停滯、時間流逝、IV 下降'],['階段二動作','買回股票,軋空反彈','賣出股票,回檔拉回']];
+let cur=-1,rev=S.length,term=null,dir='up';
+const $=id=>document.getElementById(id);
+function render(){
+let h='<div class="hd">'+LN.map(n=>'<b>'+n+'</b>').join('')+'</div>',ph=0;
+S.forEach((s,i)=>{
+if(s.p!==ph){ph=s.p;h+='<div class="ph p'+ph+'">'+(ph==1?'階段一  機械性賣盤 加速趕底<small>實質賣壓</small>':'階段二  燃料點燃 軋空反彈<small>機械性買盤</small>')+'</div>'}
+const a=Math.min(s.f,s.t),z=Math.max(s.f,s.t),n=z-a+1,c=['row'];
+if(i==cur)c.push('sel');if(i>=rev)c.push('dim');
+if(term){S[i].m.includes(term)?c.push('rel'):c.push('dim')}
+const lb=(i+1)+'. '+s.x;
+let inner;
+if(s.k=='note')inner='<div class="note">'+lb+'</div>';
+else inner='<div class="lb">'+lb+'</div><div class="ar '+(s.t>s.f?'r':'l')+' '+s.k+'" style="left:calc(50%/'+n+');right:calc(50%/'+n+')"></div>';
+h+='<div class="'+c.join(' ')+'" data-i="'+i+'"><div class="cell '+(s.k=='note'?'':s.k)+'" style="grid-column:'+(a+1)+'/'+(z+2)+'">'+inner+'</div></div>'});
+$('lanes').innerHTML=h;
+$('lanes').querySelectorAll('.row').forEach(r=>r.onclick=()=>pick(+r.dataset.i));
+detail();gloss()}
+function detail(){
+const p=$('detail');
+if(cur<0){p.innerHTML='<h3>尚未選取步驟</h3><p class="mut">點擊上方任一列,這裡會顯示說明與相關名詞。</p>';return}
+const s=S[cur];
+p.innerHTML='<h3>第 '+(cur+1)+' 步:'+s.x+'</h3><p class="mut">'+(s.p==1?'階段一 · 機械性賣盤':'階段二 · 軋空反彈')+'</p><p>'+s.d+'</p>'+s.m.map(m=>'<button class="chip'+(term==m?' on':'')+'" data-t="'+m+'">'+G[m][0]+'</button>').join('')+(term?'<button class="chip" data-t="">清除高亮</button>':'');
+p.querySelectorAll('.chip').forEach(b=>b.onclick=()=>setTerm(b.dataset.t||null))}
+function gloss(){
+$('tbar').innerHTML=Object.keys(G).map(k=>'<button class="chip'+(term==k?' on':'')+'" data-t="'+k+'">'+G[k][0]+'</button>').join('')+(term?'<button class="chip" data-t="">清除高亮</button>':'');
+$('tbar').querySelectorAll('.chip').forEach(b=>b.onclick=()=>setTerm(b.dataset.t||null));
+$('gloss').innerHTML=Object.keys(G).map(k=>{
+const st=S.map((s,i)=>s.m.includes(k)?i:-1).filter(i=>i>=0);
+return '<div class="card'+(term==k?' on':'')+'" id="g_'+k+'"><h3>'+G[k][0]+'</h3><p>'+G[k][1]+'</p><span class="mut">出現於:</span>'+st.map(i=>'<button data-i="'+i+'">'+(i+1)+'</button>').join('')+'</div>'}).join('');
+$('gloss').querySelectorAll('button').forEach(b=>b.onclick=()=>{pick(+b.dataset.i);$('seq').scrollIntoView({behavior:'smooth'})})}
+function pick(i){cur=i;if(i>=rev)rev=i+1;render()}
+function setTerm(t){term=term==t?null:t;render();if(term)$('g_'+term).scrollIntoView({block:'nearest',behavior:'smooth'})}
+$('play').onclick=()=>{rev=1;cur=0;render()};
+$('next').onclick=()=>{if(rev<S.length)rev++;cur=Math.min(cur+1,rev-1);render()};
+$('prev').onclick=()=>{cur=Math.max(cur-1,0);if(rev>cur+1&&rev<S.length)rev=cur+1;render()};
+$('all').onclick=()=>{rev=S.length;render()};
+function vix(){
+const v=+$('vix').value,z=Z.find(z=>v>=z[0]&&v<z[1]),up=dir=='up',i=Z.indexOf(z),st=up?[1,3,4,5][i]:[14,12,11,7][i];
+$('vres').innerHTML='<h3>VIX '+v+' · '+z[2]+'</h3><p>成交量參考:'+z[3]+'(對比 20 日均量)</p><p>'+(up?z[4]:z[5])+'</p><button id="go">查看對應時序圖第 '+st+' 步</button>';
+$('go').onclick=()=>{pick(st-1);$('seq').scrollIntoView({behavior:'smooth'})}}
+$('vix').oninput=vix;
+$('dUp').onclick=()=>{dir='up';$('dUp').classList.add('on');$('dDn').classList.remove('on');vix()};
+$('dDn').onclick=()=>{dir='dn';$('dDn').classList.add('on');$('dUp').classList.remove('on');vix()};
+function mir(){$('mt').innerHTML='<tr><th></th><th class="dn">急跌(Put 端)</th><th class="up">急漲(Call 端)</th></tr>'+M.map(r=>'<tr><td>'+r[0]+'</td><td class="dn">'+r[1]+'</td><td class="up">'+r[2]+'</td></tr>').join('')}
+$('mDn').onclick=()=>{$('mt').dataset.d='dn';$('mDn').classList.add('on');$('mUp').classList.remove('on')};
+$('mUp').onclick=()=>{$('mt').dataset.d='up';$('mUp').classList.add('on');$('mDn').classList.remove('on')};
+render();vix();mir();
+const TL=['原始模型與補充需求','急漲是否類似','補強時序圖(貼入對話)','加入 VIX 範圍','加入成交量','放大標題與專業感','輸出互動 HTML','加入逐字稿分頁'];
+const T=[
+['u',`這是一段大跌/急跌/崩盤時, 典型的價格行為模型/模式:
+"""
+市場下跌,投資人損失。市場繼續下跌, 投資人開始恐慌。
+此時恐慌造成一般投資人/散戶(相對造市商) 1. 買 put 避險(幫持有部位避險), 或 2. 賣出部位: 降部位或降槓桿; 同時, 造市商 1. 賣出 put, 並 2. 賣出部位幫 sell put 避險。
+
+上述說明, 可看出 投資人及造勢商, 都同時賣出部位,雖然兩者賣出的原因不同。
+
+造市商的「賣壓」最終會變成「看多」燃料？
+「造市商去放空股票，不是會造成進一步的賣壓嗎？這樣怎麼會是看多？」
+事實上，這個過程分為兩個階段：
+第一階段（加速趕底）： 造市商的放空確實會帶來龐大的實質賣壓。這就是為什麼當市場恐慌、Put 成交量爆增時，股市往往會出現「加速暴跌」。
+第二階段（買盤爆發，這就是看多訊號的來源）： 當恐慌達到極致（Put/Call Ratio 飆高到極端值），所有想賣的人都賣了，市場跌勢開始趨緩，或者出現小幅反彈。這時奇妙的事情發生了：
+因為時間流逝或股市反彈，投資人買的 Put 開始貶值（Delta 變小）。
+造市商發現他們之前「放空太多股票」了，已經過度避險。
+為了解除多餘的避險部位，造市商必須「買回股票（回補空單）」。
+
+造市商龐大的「機械性買盤」湧入市場，推升股市。股市一漲，Put 貶值更快，造市商又必須買回更多股票……這就形成了強烈的軋空效應（Short Squeeze）。
+"""
+
+請加以補充, 並用時序圖的方式說明。`],
+['a',`【圖表:時序圖 v1】
+
+上圖是時序圖。紅色箭頭是賣壓,青綠色箭頭是買盤。以下補充幾個原文沒寫到、但會影響判斷的重點。
+
+**1. 階段一的關鍵是「負 Gamma」,不只是「賣 put 要避險」**
+- 造市商賣 put 給投資人,等於持有正 Delta、負 Gamma 的部位,避險方式是放空股票。
+- 價格越跌,put 的 Delta 越大(變得更負),造市商必須賣出更多股票才能維持中性。
+- 所以造市商的操作是順勢:跌了賣、漲了買。這會放大波動,而不只是單純加入賣壓。
+- 這也是為什麼階段一會「加速」,而不是平穩地下跌。
+
+**2. 階段二的回補不只來自「反彈」,還有三個機制**
+- **Gamma 反向**:股價反彈時 put 轉向價外,Delta 縮小,造市商要買回股票。
+- **Charm(時間流逝)**:即使價格沒動,Delta 也會隨時間衰減。尤其是短天期的價外 put,Delta 衰減得很快。
+- **Vanna(波動率下降)**:恐慌退潮後 IV 回落,價外 put 的 Delta 變小,造市商又要回補。
+- 這三者疊加,就是所謂的「機械性買盤」。
+
+**3. 回補還有其他來源**
+- 投資人買的 put 到期、獲利了結或被平倉,造市商的對沖部位也跟著解除。
+- 選擇權到期日附近,Gamma 與 Charm 效應最強,回補往往集中在這段時間。
+
+**4. 這個模型的前提與限制**
+- **造市商必須處於淨負 Gamma**:要看 GEX(Gamma Exposure)等指標,不是每次下跌都成立。若造市商本來就是正 Gamma,下跌時他們反而逆勢買進,走勢會比較緩和。
+- **階段二需要「恐慌暫停」作為觸發**:若基本面持續惡化、價格不停創新低,put 的 Delta 不會下降,回補就不會發生,甚至會繼續加碼放空。
+- **回補是機械性、短期的**:它解釋的是急跌後的反彈與軋空,不代表長期趨勢反轉。
+- **Put/Call Ratio 極端值只是情緒指標**:它是反向訊號的輔助,並不精準,極端之後仍可能再創極端。
+- **散戶的賣壓與造市商的賣壓性質不同**:散戶賣是出場或降風險,賣完就結束;造市商賣是為了維持 Delta 中性,所以會隨著價格與時間反向回補。這也是兩者在階段二方向不同的原因。
+
+**一句話總結**
+急跌時,散戶與造市商同時賣出,賣壓疊加造成加速下殺。恐慌達到極致後,隨著價格回穩、時間流逝與 IV 下降,put 的 Delta 縮小,造市商過度的空單必須回補,形成買盤並可能引發軋空。
+
+以上是對選擇權避險機制的概念性說明,不構成投資建議。`],
+['u',`股市飆漲時,做空的投資人,  也有急買call避險或降槓桿, 及造市商等一系列類似操作,
+造成類似的股價行為模式嗎?`],
+['a',`會,而且在結構上是鏡像關係,只是在指數與個股上的強度不同。
+
+**鏡像對照**
+
+| | 急跌(Put 端) | 急漲(Call 端) |
+|---|---|---|
+| 受損者 | 多頭 | 空頭 |
+| 散戶/投資人行為 | 賣股、買 put 避險 | 回補空單、買 call 避險 |
+| 造市商部位 | 賣 put,持有正 Delta、負 Gamma | 賣 call,持有負 Delta、負 Gamma |
+| 造市商避險 | 放空股票 | 買進股票 |
+| 價格變動時 | 越跌越賣 | 越漲越買 |
+| 階段一結果 | 加速下殺 | 加速上攻(Gamma Squeeze / 軋空) |
+| 階段二觸發 | 反彈、時間流逝、IV 下降,put Delta 縮小 | 漲勢停滯、時間流逝、IV 下降,call Delta 縮小 |
+| 階段二造市商動作 | 買回股票,回補空單 | 賣出股票,解除多餘避險 |
+| 階段二結果 | 反彈、軋空 | 回檔、拉回 |
+
+階段二對應的是漲勢結束後的急跌。造市商此時賣出先前為避險買進的股票,賣壓往往讓回落比上漲更急。
+
+**差異與不對稱**
+
+1. **買 call 的主力通常不是空頭。** 做空者多半直接回補或停損,比較少買 call 避險。急漲時大量買 call 的,多半是追價的投機者(FOMO),他們的需求才是造市商被迫買股的主要來源。
+
+2. **指數與個股的 Gamma 結構不同。**
+   - 個股,特別是散戶集中買短天期 call 的標的,造市商容易是淨負 Gamma,急漲時 Gamma Squeeze 很強,例如 2021 年的 GameStop。
+   - 大盤指數則相反:機構常賣出 call(如 covered call、收益型策略)並買 put 避險,造市商在上檔常是正 Gamma,會逆勢賣出,抑制漲幅。
+   - 所以指數的「崩跌」通常比「飆漲」更劇烈,個股則可能兩者都有。
+
+3. **空頭有額外的強制回補機制。** 空頭虧損理論上無上限,又有保證金追繳與借券成本,觸及時會被迫買回。這和多頭停損類似,但在股票流通量小、空單比例高(Short Interest 高、回補天數長)時更容易失控。
+
+4. **波動率與價格的關係不同。** 指數通常是「跌時 IV 升、漲時 IV 降」,所以下跌時 Vanna 效應與 Gamma 同向加強,上漲時 IV 下降反而讓 call Delta 縮小,削弱造市商的買盤。個股在狂熱時則可能出現「價漲、IV 也漲」,使效應持續更久。
+
+5. **階段二的走勢特性不同。** 急跌後的反彈是回補驅動,通常有基本面支撐才能延續。急漲後若缺乏基本面,動能耗盡時造市商與投機者同時退場,常出現暴漲後暴跌。
+
+**成立條件**
+- 造市商必須處於淨負 Gamma,否則上述機制不會放大波動。
+- 短天期、價平附近的選擇權成交量要大,Gamma 與 Charm 才夠強。
+- 標的流通量相對選擇權部位要小,衝擊才明顯。
+- 這是解釋短期價格行為的框架,不能預測轉折點,也不代表長期趨勢。
+
+以上屬於概念性說明,不構成投資建議。`],
+['u',`請用以下對話內的更多資訊, 補強到上面的時序圖!
+"""
+所以 造市商 
+1. 賣出put, 同時先機械性空單賣盤（加速趕底）避險, 待市場恐慌到極致, 市場跌勢趨緩/出現小幅反彈, 
+2. put貶值, 造成過度避險, 回補空單解除多餘避險, 造成put持續貶值,回補更多空單, 變成軋空了
+
+這樣理解對嗎? 
+
+完全正確！您的理解非常精準，這正是華爾街期權市場中造成「V轉」的核心微觀機制。
+您完美地描述了這個被稱為 Gamma Squeeze（伽瑪軋空） 的兩階段連鎖反應。為了讓您的理解更無懈可擊，我為您補充兩個加速「Put 貶值」的關鍵催化劑：
+階段一（機械性賣盤加速趕底）： 如您所述，散戶與機構瘋狂買 Put，造市商被迫賣出 Put 並在現貨市場放空股票（Delta Hedging）。這個避險賣壓疊加市場本身的恐慌，會導致股價跌幅超跌，形成極端的「超賣區」。
+階段二（燃料點燃與軋空反彈）： 只要市場跌勢稍微停滯，造市商就會開始回補空單。除了「股價小幅反彈」會讓 Put 貶值外，還有兩個更強大的力量會觸發這個機制：
+波動率下降（IV Crush）： 恐慌到了極點後，VIX 只要稍微回落，期權的權利金就會大幅縮水。
+時間流逝（Time Decay）： 恐慌時買的 Put 通常是短天期的，只要股價幾天不跌，時間價值就會快速蒸發。
+結論：
+當 Put 的對沖需求（Delta 值）因為上述原因快速下降時，造市商瞬間從「避險剛好」變成「過度避險（空單太多）」。他們必須瘋狂買回股票（Short Covering）來平倉。
+造市商的買盤推升股價 ➡️ Put 進一步貶值 ➡️ 造市商需要回補更多空單 ➡️ 股價再度推升。
+這就是為什麼當 Put/Call Ratio 飆高到大於 1.0 甚至 1.15 的極端值時，聰明的資金不會跟著恐慌，反而會視為強烈的看多訊號——因為他們知道，造市商手中已經累積了海量的「潛在買盤燃料」，只要一點火花，就能引爆猛烈的反彈行情。您已經完全掌握了這個反向指標的精髓！"""`],
+['a',`(此回合在產生圖表時中斷,沒有產生文字回覆;補強內容已併入下一版時序圖。)`],
+['u',`時序圖中, 請加入 VIX 的參考範圍`],
+['a',`【圖表:時序圖 v2,含 VIX 參考區間】
+
+圖中已加入前述對話的新內容(VIX/時間欄位、IV Crush、Theta、Put/Call 比、聰明資金反向布局)與 VIX 參考區間。
+
+**VIX 區間的使用重點**
+- 區間是市場慣用的經驗值:低於 20 平靜或正常,20~30 警戒,30~40 恐慌,40 以上極端恐慌。它們不是嚴格規則,不同市場環境下的意義會有差異。
+- 變化速度比絕對水準更重要。VIX 一天內從 15 跳到 30,與長期在 30 附近盤整,對造市商避險行為影響不同。
+- 階段二的觸發重點是 VIX 從高點回落。例如從 40 以上降到 30 以下,價平附近 put 的 Delta 與權利金會明顯縮小,這就是圖中的 IV Crush。
+- VIX 見頂不等於股價見底。兩者常常接近同時發生,但也可能出現 VIX 已回落、股價再破低的情況。
+
+**對前面說法的兩點修正**
+- 「Gamma Squeeze」通常指上漲方向,也就是造市商賣出 call 後被迫追買股票。急跌後的反彈更精確的說法是「避險回補」(dealer hedge unwind)或軋空,機制類似,但方向相反。
+- Put/Call 比超過 1.0 或 1.15 只是情緒指標。它代表避險需求高,是輔助的反向訊號,不保證反彈,極端值之後也可能再創極端。
+
+以上屬於概念性說明,不構成投資建議。`],
+['u',`時序圖中,請加入成交量的參考`],
+['a',`【圖表:時序圖 v3,含 VIX 與成交量參考】
+
+圖中已加入成交量參考。VIX 欄位的每個區間都對應一個量能參考,另外有三處額外標註:
+
+- **階段一**:賣壓疊加時標示「爆量下殺」,選擇權端標示 Put 量暴增。
+- **恐慌極致**:標示「賣出高潮」(selling climax),也就是極端爆量。
+- **階段二**:加上「反彈量增較可靠,量縮易再探底」的提醒。
+
+**量能參考怎麼讀**
+- 量倍數是當日成交量除以 20 日均量,屬經驗值,實際要依標的調整。大盤 ETF、個股與台股的量能特性並不相同。
+- 爆量(超過 2 倍)出現在 VIX 極端區時,常是賣出高潮,代表最急的賣盤已經釋放。但這只是「可能見底」的訊號,不保證隔天就反彈。
+- 選擇權端另外看 Put 成交量、Put/Call 比與未平倉量(OI),不要只看現股量。
+- 反彈階段要看量價是否配合:量增價漲較可信,量縮的反彈容易只是技術性反抽,之後可能再探底。
+- 恐慌解除後(VIX 回落至 30 以下、再到 20 以下),量能通常逐步縮減並回到 1 倍附近。這種「量縮」本身是正常的降溫,不代表反彈失敗。
+
+**限制**
+- 價與量的背離(例如價格再創低但量能萎縮)有時比單看爆量更有參考價值,但解讀較主觀。
+- 這些區間是粗略經驗值,在不同市場結構與事件(例如財報、政策消息)下可能失準,建議搭配其他指標一起判斷。
+
+以上屬於概念性說明,不構成投資建議。`],
+['u',`時序圖中,請將
+
+1. "階段一機械性賣盤加速趕底" 及 "階段二燃料點燃軋空反彈" 字體放大,用粗黑體,
+2.  整個設計加上專業感!`],
+['a',`【圖表:時序圖 v4,專業版】
+
+我已經把兩個階段改成全寬色帶標題,並整體重新排版。
+
+**1. 階段標題**
+- 「階段一 機械性賣盤 加速趕底」與「階段二 燃料點燃 軋空反彈」改為 20px 粗體。
+- 兩個階段各有一條全寬色帶,階段一用珊瑚紅,階段二用青綠色,與圖中賣壓、買盤的箭頭顏色對應。
+- 色帶右側的小字補上「實質賣壓」與「機械性買盤」,方便一眼區分兩個階段的性質。
+
+**2. 專業感的調整**
+- 加上主標題與副標題,把 Delta 避險、Gamma 效應、IV Crush、Theta 衰減、回補循環等關鍵詞列出。
+- 四個角色欄位、生命線與備註框的位置重新對齊,欄距拉寬,文字不再擠在一起。
+- 生命線在色帶處中斷,不再穿過標題。
+- 底部新增圖例,說明各色箭頭的意義,並保留量倍數與免責說明。
+
+字體粗細用了 700,比一般圖表的 500 更重;如果在你的裝置上看起來太重,可以再調整。`],
+['u',`將整個對話, 輸出成帶有互動性、關聯性的 html 檔案。`],
+['a',`【檔案:crash_dealer_hedging_interactive.html】
+
+我已把整段對話整理成 \`crash_dealer_hedging_interactive.html\`,用瀏覽器打開即可使用,也支援深色模式與手機橫向捲動。
+
+**互動與關聯設計**
+- **時序圖**:共 14 個步驟,分成階段一與階段二兩個色帶。點任一列會顯示說明與相關名詞。「逐步播放」可從第 1 步一路推演到軋空。
+- **名詞地圖**:點名詞標籤會高亮所有相關步驟,每張名詞卡也列出出現的步驟編號,點編號可跳回時序圖。
+- **VIX 與成交量**:拖曳 VIX 滑桿並切換「上升中」或「回落中」,會顯示對應的量能與造市商狀態,按鈕可跳到相關的時序圖步驟。
+- **急漲鏡像**:切換急跌或急漲,表格中對應的欄位會被強調。
+- **限制與修正**:收錄 Gamma 條件、需要「恐慌暫停」、Gamma Squeeze 的用詞說明、Put/Call 比的限制等。
+
+這個版本以 HTML/CSS 重建時序圖,不是先前的 SVG,所以外觀會略有不同,並且為了控制檔案大小,內容做了精簡。如果要某一段寫得更詳細,或加入更多名詞,可以告訴我。
+
+我沒有實際開啟檔案測試,建議你先在瀏覽器試用,若有版面或互動問題再告訴我。`],
+['u',`請將對話的逐字稿,放入另一個 tab. 讓我可以逐字確認、用於日後學習及複習!!!
+另外在逐字稿前, 請摘要說明。`]];
+let ui=0;
+function tx(f){
+const q=(f||'').trim().toLowerCase();let h='',n=0;ui=0;
+const box=$('tx');box.textContent='';
+T.forEach((r,i)=>{
+if(r[0]=='u')ui++;
+if(q&&!r[1].toLowerCase().includes(q))return;
+n++;
+const d=document.createElement('div');d.className='turn '+r[0];d.id='t'+i;
+const hd=document.createElement('h3');hd.textContent=(r[0]=='u'?'你':'Claude')+' · 第 '+(i+1)+' 則';
+const b=document.createElement('p');b.className='tx';b.textContent=r[1];
+d.append(hd,b);box.append(d)});
+$('qn').textContent=q?'符合「'+f+'」的段落:'+n+' / '+T.length:'共 '+T.length+' 則(你 '+T.filter(r=>r[0]=='u').length+' 則、Claude '+T.filter(r=>r[0]=='a').length+' 則)'}
+let k=0;
+$('tlist').innerHTML='';
+T.forEach((r,i)=>{if(r[0]=='u'){const b=document.createElement('button');b.textContent=(k+1)+'. '+TL[k];k++;b.onclick=()=>{$('q').value='';tx('');$('t'+i).scrollIntoView({behavior:'smooth'})};$('tlist').append(b)}});
+$('q').oninput=e=>tx(e.target.value);
+function tab(t){$('pN').hidden=t!='N';$('pT').hidden=t!='T';$('bN').classList.toggle('on',t=='N');$('bT').classList.toggle('on',t=='T')}
+$('bN').onclick=()=>tab('N');$('bT').onclick=()=>tab('T');
+tx('');
+
+</script>
+</body>
+</html>
