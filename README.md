@@ -6,7 +6,7 @@
 
 本專案提供單一純靜態、無外部相依的互動式筆記網頁：
 - **線上體驗網址**：[https://cloudlet001.github.io/market-crash-price-model-and-dealer-hedging/](https://cloudlet001.github.io/market-crash-price-model-and-dealer-hedging/)
-- **互動時序圖**：14 步推演造市商與投資人在不同階段的買賣互動。
+- **互動時序圖**：15 步推演造市商與投資人在不同階段的買賣互動。
 - **名詞地圖**：Delta、Gamma、Vanna (IV Crush)、Charm、Put/Call 比等核心概念互動標註。
 - **VIX 與成交量動態模擬**：拖曳 VIX 觀察造市商避險狀態與量能倍數。
 - **急漲鏡像**：Call 端與 Put 端的結構對稱與差異分析。
